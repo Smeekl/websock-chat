@@ -5,6 +5,7 @@ import {
   WebSocketServer,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  MessageBody,
 } from '@nestjs/websockets';
 import { Logger } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
@@ -18,13 +19,14 @@ export class EventGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
 
   @SubscribeMessage('msgToServer')
   handleMessage(client: Socket, payload: string): void {
+    this.logger.log(payload);
     this.server.emit('msgToClient', payload);
-    console.log('Message handled');
   }
 
   afterInit(server: Server) {
     this.logger.log('Init');
   }
+
 
   handleDisconnect(client: Socket) {
     this.logger.log(`Client disconnected: ${client.id}`);
