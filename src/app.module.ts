@@ -1,11 +1,20 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { EventGateway } from './events/events.gateway';
 import { EventsModule } from './events/events.module';
+import {TypeOrmModule} from "@nestjs/typeorm";
 
 @Module({
-  imports: [EventsModule],
+  imports: [EventsModule, TypeOrmModule.forRoot({
+    type: 'mysql',
+    host: 'localhost',
+    port: 3306,
+    username: 'root',
+    password: '1111',
+    database: 'websocket_chat',
+    entities: [],
+    synchronize: true,
+  }),],
   controllers: [AppController],
   providers: [AppService],
 })
