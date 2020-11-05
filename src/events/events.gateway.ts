@@ -32,7 +32,7 @@ export class EventGateway
   @SubscribeMessage("getMessages")
   async handleGetMessages(client: Socket): Promise<void> {
     console.table(await this.chatService.getMessages());
-    await this.server.emit("getMessages", this.chatService.getMessages());
+    await this.server.emit("getMessages", await this.chatService.getMessages());
   }
 
   @SubscribeMessage("sendMessage")
@@ -45,19 +45,19 @@ export class EventGateway
   }
 
   @SubscribeMessage("getOnlineUsersCount")
-  handleOnlineUsersCount(client: Socket): void {
+  handleOnlineUsersCount(): void {
     this.logger.log("Message body.usersOnline: " + this.onlineUsersCount);
     this.server.emit("getOnlineUsersCount", this.onlineUsersCount);
   }
 
   @SubscribeMessage("getUsersInfo")
-  handleUserInfo(client: Socket): void {
+  handleUserInfo(): void {
     this.server.emit("getUsersInfo", this.users);
   }
 
   @SubscribeMessage("getUsers")
   async handleGetUsers(client: Socket): Promise<void> {
-    console.log(await this.userService.findAll());
+    console.table(await this.userService.findAll());
   }
 
   afterInit(server: Server) {
@@ -65,18 +65,19 @@ export class EventGateway
   }
 
   handleDisconnect(client: Socket) {
-    this.server.emit(`clientDisconnect ${client.id}`);
-    this.logger.log(`Client disconnected: ${client.id}`);
     this.onlineUsersCount--;
     this.users.pop();
+    this.handleOnlineUsersCount();
+    this.handleUserInfo();
     this.logger.log(`Users Online: ${this.onlineUsersCount}`);
   }
 
   handleConnection(client: Socket, ...args: any[]) {
-    this.server.emit(`clientConnect ${client.id}`);
     this.logger.log(`Client connected: ${client.id}`);
     this.onlineUsersCount++;
     this.users.push(client.id);
+    this.handleOnlineUsersCount();
+    this.handleUserInfo();
     this.logger.log(`Users Online: ${this.onlineUsersCount}`);
   }
 }
