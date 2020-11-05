@@ -1,21 +1,17 @@
-import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { EventsModule } from './events/events.module';
-import {TypeOrmModule} from "@nestjs/typeorm";
+import { Module } from "@nestjs/common";
+import { AppController } from "./app.controller";
+import { AppService } from "./app.service";
+import { EventsModule } from "./events/events.module";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { Connection } from "typeorm";
+import { UserModule } from "./user/user.module";
+import { ChatModule } from "./chat/chat.module";
 
 @Module({
-  imports: [EventsModule, TypeOrmModule.forRoot({
-    type: 'mysql',
-    host: 'localhost',
-    port: 3306,
-    username: 'root',
-    password: '1111',
-    database: 'websocket_chat',
-    entities: [],
-    synchronize: true,
-  }),],
+  imports: [EventsModule, TypeOrmModule.forRoot(), UserModule, ChatModule],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule {
+  constructor(private connection: Connection) {}
+}
