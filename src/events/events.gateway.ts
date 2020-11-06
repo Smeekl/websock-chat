@@ -33,7 +33,7 @@ export class EventGateway
 
   @SubscribeMessage("getMessages")
   async handleGetMessages(client: Socket): Promise<void> {
-    console.table(await this.chatService.getMessages());
+    console.log(await this.chatService.getMessages());
     await this.authService.validateUser("2", "1111");
     await this.server.emit("getMessages", await this.chatService.getMessages());
   }

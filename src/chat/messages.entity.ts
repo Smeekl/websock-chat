@@ -28,6 +28,6 @@ export class Messages {
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToOne(() => User, (user: User) => user.messages)
+  @ManyToOne(() => User, (user: User) => user.userId)
   user: User;
 }

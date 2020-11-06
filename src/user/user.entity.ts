@@ -51,5 +51,5 @@ export class User {
   }
 
   @OneToMany(() => Messages, (messages: Messages) => messages.user)
-  messages: Messages[];
+  userId: Messages[];
 }
