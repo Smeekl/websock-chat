@@ -1,5 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from "typeorm";
 import { CreateUserDto } from "./dto/user.dto";
+import { Messages } from "../chat/messages.entity";
 
 @Entity()
 export class User {
@@ -48,4 +49,7 @@ export class User {
   getRandomColor(): string {
     return this.colors[Math.random() * (this.colors.length - 1)];
   }
+
+  @OneToMany(() => Messages, (messages: Messages) => messages.user)
+  messages: Messages[];
 }

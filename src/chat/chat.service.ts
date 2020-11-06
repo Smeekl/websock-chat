@@ -12,7 +12,18 @@ export class ChatService {
   ) {}
 
   getMessages(): Promise<Messages[]> {
-    return this.messagesRepository.find();
+    return this.messagesRepository.query(
+      "SELECT messages.message, messages.createdAt, user.nickname, user.color FROM websocket_chat.messages\n" +
+        "INNER JOIN websocket_chat.user ON messages.userId = user.id;"
+    );
+    // return this.messagesRepository.find({
+    //   join: {
+    //     alias: "user",
+    //     leftJoinAndSelect: {
+    //       user: "user.user",
+    //     },
+    //   },
+    // });
   }
 
   send(createMessageDto: CreateMessageDto): Promise<InsertResult> {

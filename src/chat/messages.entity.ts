@@ -3,8 +3,12 @@ import {
   Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
+  JoinColumn,
+  OneToOne,
+  ManyToOne,
 } from "typeorm";
 import { CreateMessageDto } from "./dto/chat.dto";
+import { User } from "../user/user.entity";
 
 @Entity()
 export class Messages {
@@ -23,4 +27,7 @@ export class Messages {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @ManyToOne(() => User, (user: User) => user.messages)
+  user: User;
 }
