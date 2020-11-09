@@ -3,7 +3,6 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "../user/user.entity";
 import { UserService } from "../user/user.service";
 import { LoginUserDto } from "./dto/auth.dto";
-import jwt from "jsonwebtoken";
 import { JwtService } from "@nestjs/jwt";
 
 @Injectable()
@@ -32,9 +31,15 @@ export class AuthService {
     });
     if ((await zuser) !== null) {
       const payload = { username: user.nickname, password: user.password };
-      console.log(this.jwtService.sign(payload));
       const accesToken = this.jwtService.sign(payload);
-      await this.userService.update((await zuser).id, { token: accesToken });
+      console.log(payload);
+      console.log((await zuser).token);
+      console.log(accesToken);
+      if ((await zuser).token === accesToken) {
+        console.log("Great");
+      } else {
+        console.log("Crash");
+      }
     } else {
       console.log("User does not exist");
     }
