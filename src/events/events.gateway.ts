@@ -12,15 +12,13 @@ import { Socket, Server } from "socket.io";
 import { UserService } from "../user/user.service";
 import { CreateMessageDto } from "../chat/dto/chat.dto";
 import { ChatService } from "../chat/chat.service";
-import { AuthService } from "../auth/auth.service";
 
 @WebSocketGateway()
 export class EventGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private readonly userService: UserService,
-    private readonly chatService: ChatService,
-    private readonly authService: AuthService
+    private readonly chatService: ChatService
   ) {}
 
   @WebSocketServer()
@@ -29,13 +27,13 @@ export class EventGateway
   users: Array<string> = [];
   user: {};
 
-  private logger: Logger = new Logger("AppGateway");
+  private logger: Logger = new Logger("WebsocketGateway");
 
   @SubscribeMessage("getMessages")
   async handleGetMessages(client: Socket): Promise<void> {
-    console.log(await this.chatService.getMessages());
-    await this.authService.validateUser("2", "1111");
-    await this.server.emit("getMessages", await this.chatService.getMessages());
+    let response = await this.chatService.getMessages();
+    console.log(response);
+    this.server.emit("getMessages", response);
   }
 
   @SubscribeMessage("sendMessage")
