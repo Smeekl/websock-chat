@@ -4,12 +4,12 @@ import { User } from "../user/user.entity";
 import { UserService } from "../user/user.service";
 import { LoginUserDto } from "./dto/auth.dto";
 import { JwtService } from "@nestjs/jwt";
-import {response} from "express";
+import { response } from "express";
+import { FindUserDto } from "../user/dto/user.dto";
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(User)
     private userService: UserService,
     private jwtService: JwtService
   ) {}
@@ -25,20 +25,41 @@ export class AuthService {
     return null;
   }
 
+  async exist(user: FindUserDto) {
+    return (await this.userService.findOne(user)) !== undefined;
+  }
+
   async login(user: LoginUserDto) {
-    const zuser = this.validateUser({
-      nickname: user.nickname,
-      password: user.password,
-    });
-    if ((await zuser) !== null) {
-      const payload = { username: user.nickname, password: user.password };
-      const accesToken = this.jwtService.sign(payload);
-
-      this.userService.update((await zuser).id, {token: accesToken})
-
-      return accesToken;
-    } else {
-      return response.status(401);
+    const payload = { username: user.nickname, password: user.password };
+    const userExist = await this.exist({ nickname: user.nickname });
+    const accesToken = this.jwtService.sign(payload);
+    console.log(userExist);
+    if (userExist) {
+      const validUser = await this.validateUser({
+        nickname: user.nickname,
+        password: user.password,
+      });
+      if (!validUser) {
+        console.log("update");
+        await this.userService.update((await validUser).id, {
+          token: accesToken,
+        });
+        return accesToken;
+      } else {
+        return response.status(401);
+      }
+    } else if (!userExist) {
+      console.log(
+        await this.userService.findOne({
+          nickname: "asdasd",
+        })
+      );
+      console.log(await this.userService.create(user));
+      // const validUser = await this.validateUser({
+      //   nickname: user.nickname,
+      //   password: user.password,
+      // });
+      // await this.userService.update(validUser.id, { token: accesToken });
     }
   }
 }

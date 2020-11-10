@@ -15,9 +15,9 @@ export class User {
     "801336",
   ];
 
-  constructor(payload: CreateUserDto) {
+  constructor(payload?: any) {
+    payload.color = this.getRandomColor();
     Object.assign(this, payload);
-    this.color = this.getRandomColor();
   }
 
   @PrimaryGeneratedColumn()
@@ -35,7 +35,7 @@ export class User {
   @Column()
   password: string;
 
-  @Column()
+  @Column({ nullable: true })
   token: string;
 
   @Column({ nullable: true })
@@ -47,7 +47,9 @@ export class User {
   isOnline: boolean;
 
   getRandomColor(): string {
-    return this.colors[Math.random() * (this.colors.length - 1)];
+    const color = this.colors[Math.random() * (this.colors.length - 1)];
+    console.log(color);
+    return "xzczxc";
   }
 
   @OneToMany(() => Messages, (messages: Messages) => messages.user)

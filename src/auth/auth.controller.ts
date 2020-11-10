@@ -10,10 +10,9 @@ export class AuthController {
 
   @Post("/login")
   async login(@Body() req: LoginUserDto) {
-    // await this.authService.login({
-    //   nickname: "antohaMonstr",
-    //   password: "2222",
-    // });
-    return this.authService.login({nickname: req.nickname, password: req.password});
+    return this.authService.login({
+      nickname: req.nickname,
+      password: req.password,
+    });
   }
 }

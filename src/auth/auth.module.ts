@@ -7,11 +7,14 @@ import { JwtModule } from "@nestjs/jwt";
 import { ChatService } from "../chat/chat.service";
 import { ChatModule } from "../chat/chat.module";
 import { AuthController } from "./auth.controller";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { User } from "../user/user.entity";
 
 @Module({
   imports: [
     PassportModule,
     UserModule,
+    TypeOrmModule.forFeature([User]),
     ChatModule,
     JwtModule.register({
       secret: "websocketSecret",
