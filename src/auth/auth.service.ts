@@ -4,6 +4,7 @@ import { User } from "../user/user.entity";
 import { UserService } from "../user/user.service";
 import { LoginUserDto } from "./dto/auth.dto";
 import { JwtService } from "@nestjs/jwt";
+import {response} from "express";
 
 @Injectable()
 export class AuthService {
@@ -32,16 +33,12 @@ export class AuthService {
     if ((await zuser) !== null) {
       const payload = { username: user.nickname, password: user.password };
       const accesToken = this.jwtService.sign(payload);
-      console.log(payload);
-      console.log((await zuser).token);
-      console.log(accesToken);
-      if ((await zuser).token === accesToken) {
-        console.log("Great");
-      } else {
-        console.log("Crash");
-      }
+
+      this.userService.update((await zuser).id, {token: accesToken})
+
+      return accesToken;
     } else {
-      console.log("User does not exist");
+      return response.status(401);
     }
   }
 }

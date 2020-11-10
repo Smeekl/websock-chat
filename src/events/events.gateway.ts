@@ -74,11 +74,13 @@ export class EventGateway
   }
 
   handleConnection(client: Socket, ...args: any[]) {
+    // client.disconnect();
     this.logger.log(`Client connected: ${client.id}`);
     this.onlineUsersCount++;
     this.users.push(client.id);
     this.handleOnlineUsersCount();
     this.handleUserInfo();
     this.logger.log(`Users Online: ${this.onlineUsersCount}`);
+
   }
 }
