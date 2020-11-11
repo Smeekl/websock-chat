@@ -16,8 +16,10 @@ export class User {
   ];
 
   constructor(payload?: any) {
-    payload.color = this.getRandomColor();
-    Object.assign(this, payload);
+    if (payload) {
+      payload.color = this.getRandomColor();
+      Object.assign(this, payload);
+    }
   }
 
   @PrimaryGeneratedColumn()
@@ -44,12 +46,16 @@ export class User {
   @Column()
   color: string;
 
+  @Column({ default: false })
+  banned: boolean;
+
+  @Column({ default: false })
+  muted: boolean;
+
   isOnline: boolean;
 
   getRandomColor(): string {
-    const color = this.colors[Math.random() * (this.colors.length - 1)];
-    console.log(color);
-    return "xzczxc";
+    return this.colors[(Math.random() * (this.colors.length - 1)).toFixed(0)];
   }
 
   @OneToMany(() => Messages, (messages: Messages) => messages.user)

@@ -1,4 +1,8 @@
-import { Injectable } from "@nestjs/common";
+import {
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "../user/user.entity";
 import { UserService } from "../user/user.service";
@@ -32,34 +36,32 @@ export class AuthService {
   async login(user: LoginUserDto) {
     const payload = { username: user.nickname, password: user.password };
     const userExist = await this.exist({ nickname: user.nickname });
-    const accesToken = this.jwtService.sign(payload);
-    console.log(userExist);
+    const accessToken = this.jwtService.sign(payload);
     if (userExist) {
       const validUser = await this.validateUser({
         nickname: user.nickname,
         password: user.password,
       });
-      if (!validUser) {
+      if (validUser) {
+        if (validUser.banned) {
+          throw new ForbiddenException("You banned by administrator");
+        }
         console.log("update");
         await this.userService.update((await validUser).id, {
-          token: accesToken,
+          token: accessToken,
         });
-        return accesToken;
+        return accessToken;
       } else {
-        return response.status(401);
+        throw new UnauthorizedException("Credentials is incorrect");
       }
     } else if (!userExist) {
-      console.log(
-        await this.userService.findOne({
-          nickname: "asdasd",
-        })
-      );
-      console.log(await this.userService.create(user));
-      // const validUser = await this.validateUser({
-      //   nickname: user.nickname,
-      //   password: user.password,
-      // });
-      // await this.userService.update(validUser.id, { token: accesToken });
+      await this.userService.create(user);
+      const validUser = await this.validateUser({
+        nickname: user.nickname,
+        password: user.password,
+      });
+      await this.userService.update(validUser.id, { token: accessToken });
+      return accessToken;
     }
   }
 }

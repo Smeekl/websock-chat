@@ -5,7 +5,10 @@ import { User } from "./user.entity";
 import {
   CreateUserDto,
   FindByTokenDto,
+  FindUserByIdDto,
   FindUserDto,
+  UpdateBanStatusDto,
+  UpdateMuteStatusDto,
   UpdateUserTokenDto,
 } from "./dto/user.dto";
 import { ChatService } from "../chat/chat.service";
@@ -20,28 +23,27 @@ export class UserService {
   ) {}
 
   public create(createUserDto: CreateUserDto) {
-    console.log(555);
-    try {
-      console.log("here we go");
-      const user = new User(createUserDto);
-      console.log();
-      return this.userRepository
-        .createQueryBuilder()
-        .insert()
-        .into(User)
-        .values(user)
-        .execute();
-    } catch (e) {
-      console.log(e.messag);
-    }
+    const user = new User(createUserDto);
+    return this.userRepository
+      .createQueryBuilder()
+      .insert()
+      .into(User)
+      .values(user)
+      .execute();
   }
 
   findAll(): Promise<User[]> {
     return this.userRepository.find();
   }
 
+  findOneById(user: FindUserByIdDto): Promise<User> {
+    return this.userRepository
+      .createQueryBuilder("user")
+      .where("user.id = :id", { id: user.id })
+      .getOne();
+  }
+
   findOne(user: FindUserDto): Promise<User> {
-    console.log(123);
     return this.userRepository
       .createQueryBuilder("user")
       .where("user.nickname = :nickname", { nickname: user.nickname })
@@ -56,8 +58,21 @@ export class UserService {
     id: number,
     updateUserTokenDto: UpdateUserTokenDto
   ): Promise<void> {
-    console.log(1234);
     await this.userRepository.update(id, updateUserTokenDto);
+  }
+
+  async updateMuteStatus(
+    id: number,
+    updateMuteStatusDto: UpdateMuteStatusDto
+  ): Promise<void> {
+    await this.userRepository.update(id, updateMuteStatusDto);
+  }
+
+  async updateBanStatus(
+    id: number,
+    updateBanStatusDto: UpdateBanStatusDto
+  ): Promise<void> {
+    await this.userRepository.update(id, updateBanStatusDto);
   }
 
   async send(message: CreateMessageDto): Promise<void> {
@@ -69,5 +84,17 @@ export class UserService {
       .createQueryBuilder("user")
       .where("user.token = :token", { token: tokenDto.token })
       .getOne();
+  }
+
+  async isAdmin(user: FindUserDto): Promise<boolean> {
+    return (await this.findOne(user)) !== undefined;
+  }
+
+  async isBanned(user: FindByTokenDto): Promise<boolean> {
+    return (await this.findByToken(user)).banned;
+  }
+
+  async isMuted(user: FindByTokenDto): Promise<boolean> {
+    return (await this.findByToken(user)).muted;
   }
 }
