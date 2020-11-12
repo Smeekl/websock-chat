@@ -29,9 +29,9 @@ export class EventGateway
 
   private logger: Logger = new Logger("WebsocketGateway");
 
-  @SubscribeMessage("getMessages")
-  async handleGetMessages(client: Socket): Promise<void> {
-    this.server.emit("getMessages", await this.chatService.getMessages());
+  @SubscribeMessage("messages")
+  async handleGetMessages(): Promise<void> {
+    this.server.emit("messages", await this.chatService.getMessages());
   }
 
   @SubscribeMessage("sendMessage")
@@ -39,32 +39,41 @@ export class EventGateway
     client: Socket,
     payload: CreateMessageDto
   ): Promise<void> {
-    await this.userService.send(payload);
-    this.server.emit("getMessages", await this.chatService.getMessages());
-  }
+    console.log(payload);
+    //
+    // if (
+    //     payload.message.length > 300 ||
+    //     payload.message.length === 0 ||
+    //     (await this.userService.isMuted({ id: payload.userId }))
+    // ) {
+    //   return;
+    // }
 
-  @SubscribeMessage("checkBanStatus")
-  async handleCheckBanStatus(client: Socket, payload) {
-    if (await this.userService.isBanned({ token: payload })) {
-      this.server.sockets.connected[client.id].disconnect();
+    if (
+      payload.message.length <= 300 &&
+      payload.message.length > 0 &&
+      !(await this.userService.isMuted({ id: payload.userId }))
+    ) {
+      await this.userService.send(payload);
+      this.server.emit("messages", await this.chatService.getMessages());
+      await this.userService.updateMuteStatus(payload.userId, {
+        muted: true,
+      });
+      const user = this.getUserById(client);
+      const connection = this.server.sockets.connected[user.clientId];
+      connection.emit("mute", true);
+      setTimeout(() => {
+        this.userService.updateMuteStatus(payload.userId, {
+          muted: false,
+        });
+        connection.emit("mute", false);
+      }, 15000);
     }
-    this.server.emit(
-      "checkBanStatus",
-      await this.userService.isBanned({ token: payload })
-    );
   }
 
-  @SubscribeMessage("checkMuteStatus")
-  async handleCheckMuteStatus(client: Socket, payload) {
-    this.server.emit(
-      "checkMuteStatus",
-      await this.userService.isMuted({ token: payload })
-    );
-  }
-
-  @SubscribeMessage("getAllUsers")
-  async handleGetUsers(client: Socket): Promise<void> {
-    this.server.emit("getAllUsers", await this.userService.findAll());
+  @SubscribeMessage("allUsers")
+  async handleGetUsers(): Promise<void> {
+    this.server.emit("allUsers", await this.userService.findAll());
   }
 
   @SubscribeMessage("ban")
@@ -85,29 +94,45 @@ export class EventGateway
   }
 
   @SubscribeMessage("unban")
-  async handleUnban(client: Socket, payload): Promise<void> {
+  async handleUnban(client: Socket, payload: AdminActionsDto): Promise<void> {
     if (this.isAdmin(client)) {
-      await this.userService.updateBanStatus(payload.actionUserId, {
+      await this.userService.updateBanStatus(payload.userId, {
         banned: false,
       });
     }
   }
 
   @SubscribeMessage("mute")
-  async handleMute(client: Socket, payload): Promise<void> {
+  async handleMute(client: Socket, payload: AdminActionsDto): Promise<void> {
     if (this.isAdmin(client)) {
-      await this.userService.updateMuteStatus(payload.actionUserId, {
+      await this.userService.updateMuteStatus(payload.userId, {
         muted: true,
       });
+      const user = this.users.find(
+        ({ user }: SocketUserRelationInterface) => user.id === payload.userId
+      );
+      if (user) {
+        const connection = this.server.sockets.connected[user.clientId];
+        this.logger.log("- socket muted ", connection.id);
+        connection.emit("mute", true);
+      }
     }
   }
 
   @SubscribeMessage("unmute")
-  async handleUnmute(client: Socket, payload): Promise<void> {
+  async handleUnmute(client: Socket, payload: AdminActionsDto): Promise<void> {
     if (this.isAdmin(client)) {
-      await this.userService.updateMuteStatus(payload.actionUserId, {
+      await this.userService.updateMuteStatus(payload.userId, {
         muted: false,
       });
+      const user = this.users.find(
+        ({ user }: SocketUserRelationInterface) => user.id === payload.userId
+      );
+      if (user) {
+        const connection = this.server.sockets.connected[user.clientId];
+        this.logger.log("- socket unmuted ", connection.id);
+        connection.emit("unmute", false);
+      }
     }
   }
 
@@ -132,9 +157,9 @@ export class EventGateway
       this.logger.log(`Client connected: ${client.id}`);
       this.users.push({ user: this.user, clientId: client.id });
       this.handleUserInfo(client);
-      this.server.emit("getMessages", await this.chatService.getMessages());
+      this.server.emit("messages", await this.chatService.getMessages());
       this.server.emit("onlineUsers", this.getOnlineUsers());
-      this.server.emit("getAllUsers", await this.userService.findAll());
+      this.server.emit("allUsers", await this.userService.findAll());
     }
     this.logger.log(`Users Online: ${this.getOnlineUsersCount()}`);
   }

@@ -1,8 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { InsertResult, Repository, SelectQueryBuilder } from "typeorm";
+import { Repository } from "typeorm";
 import { User } from "./user.entity";
 import {
+  CreateAdminDto,
   CreateUserDto,
   FindByTokenDto,
   FindUserByIdDto,
@@ -24,6 +25,16 @@ export class UserService {
 
   public create(createUserDto: CreateUserDto) {
     const user = new User(createUserDto);
+    return this.userRepository
+      .createQueryBuilder()
+      .insert()
+      .into(User)
+      .values(user)
+      .execute();
+  }
+
+  public createAdmin(createAdminDto: CreateAdminDto) {
+    const user = new User(createAdminDto);
     return this.userRepository
       .createQueryBuilder()
       .insert()
@@ -90,11 +101,11 @@ export class UserService {
     return (await this.findOne(user)) !== undefined;
   }
 
-  async isBanned(user: FindByTokenDto): Promise<boolean> {
-    return (await this.findByToken(user)).banned;
+  async isBanned(user: FindUserByIdDto): Promise<boolean> {
+    return (await this.findOneById(user)).banned;
   }
 
-  async isMuted(user: FindByTokenDto): Promise<boolean> {
-    return (await this.findByToken(user)).muted;
+  async isMuted(user: FindUserByIdDto): Promise<boolean> {
+    return (await this.findOneById(user)).muted;
   }
 }

@@ -1,10 +1,18 @@
 import { Length, IsNotEmpty } from "class-validator";
 
 export class CreateUserDto {
-  @Length(3, 30)
+  @Length(3, 20)
   nickname: string;
   @IsNotEmpty()
   password: string;
+}
+
+export class CreateAdminDto {
+  @Length(3, 20)
+  nickname: string;
+  @IsNotEmpty()
+  password: string;
+  isAdmin: boolean;
 }
 
 export class FindUserDto {

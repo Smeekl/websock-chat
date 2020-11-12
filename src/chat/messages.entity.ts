@@ -3,8 +3,6 @@ import {
   Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
-  JoinColumn,
-  OneToOne,
   ManyToOne,
 } from "typeorm";
 import { CreateMessageDto } from "./dto/chat.dto";

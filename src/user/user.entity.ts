@@ -1,6 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from "typeorm";
-import { CreateUserDto } from "./dto/user.dto";
 import { Messages } from "../chat/messages.entity";
+import { LoginUserDto } from "../auth/dto/auth.dto";
+import { createHash } from "crypto";
 
 @Entity()
 export class User {
@@ -15,10 +16,13 @@ export class User {
     "801336",
   ];
 
-  constructor(payload?: any) {
+  constructor(payload?: LoginUserDto) {
     if (payload) {
-      payload.color = this.getRandomColor();
-      Object.assign(this, payload);
+      Object.assign(this, {
+        ...payload,
+        color: this.getRandomColor(),
+        password: createHash("sha256").update(payload.password).digest("hex"),
+      });
     }
   }
 

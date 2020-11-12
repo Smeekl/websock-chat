@@ -6,12 +6,12 @@
   "password": "1111",
   "database": "websocket_chat",
   "entities": ["dist/**/*.entity{.ts,.js}"],
-  "synchronize": true,
+  "synchronize": false,
   "dropSchema": false,
   "migrationsRun": false,
   "logging": true,
-  "migrations": ["dist/**/db/migrations/*{.ts,.js}"],
+  "migrations": ["dist/**/migrations/*{.ts,.js}"],
   "cli": {
-    "migrationsDir": "db/migrations"
+    "migrationsDir": "src/db/migrations"
   }
 }
